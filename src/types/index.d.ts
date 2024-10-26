@@ -4,8 +4,10 @@ declare module Global {
 		locale: {
 			ru: {
 				cg_name: string
+				link: string
 			}
 		}
+		path_to_top: number[]
 		childs: TreeElement[]
 	}
 }
