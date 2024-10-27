@@ -9,12 +9,12 @@
 				@click="isExpanded = !isExpanded"
 			/>
 			<nuxt-link
-				:to="element.locale[language].link + element.id"
+				:to="categoryLink"
 				target="_blank"
 				class="hover:text-sky-500"
 				:class="{ 'ms-7': !element.childs || element.childs.length === 0 }"
 			>
-				{{ element.locale[language].cg_name }}
+				{{ categoryName }}
 			</nuxt-link>
 		</div>
 		<div class="ms-7 text-xs text-gray-400">{{ breadcrumbs }}</div>
@@ -42,29 +42,44 @@ const { element, localization } = defineProps({
 
 const isExpanded = ref(false)
 
+const getFirstLocaleKey = (node: Global.TreeElement = element) => {
+	return (
+		Object.keys(node.locale).forEach((key) => {
+			if (Object.keys(node.locale[key]).length > 0) {
+				return key
+			}
+		}) ?? 'ru'
+	)
+}
+
 const language = computed(() => {
 	if (Object.keys(element.locale[localization]).length > 0) {
 		return localization
 	} else {
-		return (
-			Object.keys(element.locale).forEach((key) => {
-				if (Object.keys(element.locale[key]).length > 0) {
-					return key
-				}
-			}) ?? 'ru'
-		)
+		return getFirstLocaleKey()
 	}
+})
+
+const categoryName = computed(() => {
+	return element.locale[language.value].cg_name
+})
+
+const categoryLink = computed(() => {
+	return element.locale[language.value].link + element.id
 })
 
 const breadcrumbs = computed(() => {
 	let tempElement = jsonData as unknown as Global.TreeElement[]
-	return element.path_to_top
+	return [...element.path_to_top]
 		.reverse()
 		.map((id) => {
-			const foundElement = tempElement.find((element) => element.id === id)
+			const foundElement = tempElement.find((e) => e.id === id)
 			if (foundElement) {
 				tempElement = foundElement.childs
-				return foundElement.locale[language.value].cg_name
+				return (
+					foundElement.locale[localization].cg_name ??
+					foundElement.locale[getFirstLocaleKey(foundElement)].cg_name
+				)
 			}
 		})
 		.join(' -> ')
