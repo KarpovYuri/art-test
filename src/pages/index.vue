@@ -12,6 +12,7 @@
 			v-for="element in treeElements"
 			:key="`element-${element.id}`"
 			:element="element"
+            :localization = "localization"
 		/>
 	</ul>
 </template>
@@ -21,5 +22,5 @@ import jsonData from '@/utils/task.json'
 import TreeElement from '@/components/TreeElement.vue'
 
 const treeElements = jsonData as unknown as Global.TreeElement[]
-const localization = ref('ru')
+const localization = ref('ru') as Ref<'ru' | 'en' | 'fr'>
 </script>

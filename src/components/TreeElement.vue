@@ -9,12 +9,12 @@
 				@click="isExpanded = !isExpanded"
 			/>
 			<nuxt-link
-				:href="element.locale.ru.link + element.id"
+				:to="element.locale[language].link + element.id"
 				target="_blank"
 				class="hover:text-sky-500"
 				:class="{ 'ms-7': !element.childs || element.childs.length === 0 }"
 			>
-				{{ element.locale.ru.cg_name }}
+				{{ element.locale[language].cg_name }}
 			</nuxt-link>
 		</div>
 		<div class="ms-7 text-xs text-gray-400">{{ breadcrumbs }}</div>
@@ -27,6 +27,7 @@
 			v-for="child in element.childs"
 			:key="`child-${child.id}`"
 			:element="child"
+			:localization="localization"
 		/>
 	</ul>
 </template>
@@ -34,22 +35,38 @@
 <script setup lang="ts">
 import jsonData from '@/utils/task.json'
 
-const { element } = defineProps({
+const { element, localization } = defineProps({
 	element: { type: Object as () => Global.TreeElement, required: true },
+	localization: { type: String as () => 'ru' | 'en' | 'fr', required: true },
 })
 
 const isExpanded = ref(false)
 
+const language = computed(() => {
+	if (Object.keys(element.locale[localization]).length > 0) {
+		return localization
+	} else {
+		return (
+			Object.keys(element.locale).forEach((key) => {
+				if (Object.keys(element.locale[key]).length > 0) {
+					return key
+				}
+			}) ?? 'ru'
+		)
+	}
+})
+
 const breadcrumbs = computed(() => {
 	let tempElement = jsonData as unknown as Global.TreeElement[]
-	const breadcrumbsArray = [] as string[]
-	element.path_to_top.reverse().forEach((id) => {
-		const foundElement = tempElement.find((element) => element.id === id)
-		if (foundElement) {
-			tempElement = foundElement.childs
-            breadcrumbsArray.push(foundElement.locale.ru.cg_name)
-		}
-	})
-	return breadcrumbsArray.join(' -> ')
+	return element.path_to_top
+		.reverse()
+		.map((id) => {
+			const foundElement = tempElement.find((element) => element.id === id)
+			if (foundElement) {
+				tempElement = foundElement.childs
+				return foundElement.locale[language.value].cg_name
+			}
+		})
+		.join(' -> ')
 })
 </script>
